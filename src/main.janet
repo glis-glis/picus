@@ -31,5 +31,6 @@
 	  (if (res "teach")
 		(picus/teach entries (res "teach"))
 		(picus/quiz entries (picus/make-pool entries)))
+	  (print (os/strftime "%Y-%m-%d, %H:%M" (picus/next entries)))
 	  (picus/write entries (res :default)))
 	(print "Picus-File needed without other arguments!")))

@@ -6,8 +6,8 @@
 (import spork/randgen)
 (import spork/json)
 
-(def min 60)
-(def hour (* 60 min))
+(def minute 60)
+(def hour (* 60 minute))
 (def day (* 24 hour))
 (def dt_min (* 6 hour))
 (def growth 1.5)
@@ -127,6 +127,14 @@
 				(> (get-in entries [(a :key) (a :idx) :next])
 				   (get-in entries [(b :key) (b :idx) :next]))))
   {:now now :later later})
+
+(defn next [entries]
+  (var t math/int32-max)
+  (loop [unit :in entries
+		 entry :in unit
+		 :when (entry :next)]
+	(set t (min t (entry :next))))
+  t)
 
 (defn write [entries fileName]
 (spit fileName (json/encode entries "\t" "\n")))
