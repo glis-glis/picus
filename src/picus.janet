@@ -75,23 +75,29 @@
   (unless (= N 0)
 	# In order with answer
 	(print "")
-	(loop [entry :in unit :unless (entry :next)]
+	(def iis @[])
+	(loop [i :range [0 (length unit)]
+		   :let [entry (unit i)]
+		   :unless (entry :next)]
+	  (array/push iis i)
 	  (print (entry :Q) " " (entry :A))
 	  (ask-loop entry))
 	(print)
 
 	# In order without answer
-	(loop [entry :in unit :unless (entry :next)]
+	(loop [i :in iis :let [entry (unit i)]]
 	  (ask-loop entry))
 	(print)
 
 	# Out of order without answer
-	(def iis (math/shuffle-in-place (range (length unit))))
-	(loop [i :in iis :let [entry (unit i)] :unless (entry :next)]
-	  (ask-loop entry)
-	  # Learned -> put into pool
-	  (set (entry :dt) dt_min)
-	  (set (entry :next) (+ (os/time) (entry :dt))))
+
+	(while (not (empty? iis))
+	  (swap-end iis (randgen/rand-index iis))
+	  (def entry (unit (array/peek iis)))
+	  (when (= (ask-loop entry) 0)
+		(array/pop iis))
+		(set (entry :dt) dt_min)
+		(set (entry :next) (+ (os/time) (entry :dt))))
 	(print)
 	(print ":-)")))
 
