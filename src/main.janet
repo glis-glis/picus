@@ -10,27 +10,28 @@
 	(argparse/argparse "Command-line spaced repetion program"
 					   :default {:kind :option
 								 :help "Picus-File"}
-					   "morse" {:kind :option
+					   "morse" {:kind :flag
 								:short "m"
-								:help "Create morse-learning Picus-File with given name"}
+								:help "Create morse-learning Picus-File morse.json"}
 					   "10x10" {:kind :flag
 								:help "Create 10x10 Picus-File 10x10.json"}
 					   "20x20" {:kind :flag
 								:help "Create 20x20 (without 10x10 part) Picus-File 20x20.json"}
 					   "teach" {:kind :option
 								:short "t"
-								:help "Teach untrainted entries in unit"}))
+								:help "Teach untrainted entries in unit VALUE"}))
   (unless res
 	(os/exit 1))
 
   (cond
-	(res "morse") (picus/write (picus/make-morse) (res "morse"))
+	(res "morse") (picus/write (picus/make-morse) "morse.json")
 	(res "10x10") (picus/write  (picus/make-axb) "10x10.json")
 	(res "20x20") (picus/write (picus/make-axb 2 20 11 20) "20x20.json")
-	(res :default) (let [entries (picus/read (res :default))]
+	(res :default) (let [filename (res :default)
+					 entries (picus/read filename)]
 	  (if (res "teach")
 		(picus/teach entries (res "teach"))
 		(picus/quiz entries (picus/make-pool entries)))
-	  (print (os/strftime "%Y-%m-%d, %H:%M" (picus/next entries)))
-	  (picus/write entries (res :default)))
+	  (print (os/strftime "%Y-%m-%d, %H:%M" (picus/next entries) true))
+	  (picus/write entries filename))
 	(print "Picus-File needed without other arguments!")))
