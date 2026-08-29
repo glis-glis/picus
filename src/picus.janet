@@ -52,6 +52,12 @@
 					@{:Q "6" :A "-...."} @{:Q "7" :A "--..."} @{:Q "8" :A "---.."} @{:Q "9" :A "----."} @{:Q "0" :A "-----"}])
   entries)
 
+(defn write [entries fileName]
+(spit fileName (json/encode entries "\t" "\n")))
+
+(defn read [fileName]
+  (json/decode (slurp fileName) true))
+
 (defn ask [entry]
   (string/trim(getline (string (entry :Q) " "))))
 
@@ -62,8 +68,7 @@
 	(print ":-( " (entry :A) "!"))
   count)
 
-(defn teach [entries unitName]
-
+(defn teach [entries unitName fileName]
   (def key (keyword unitName))
   (def unit
 	(if (entries key) # may be key or string
@@ -97,11 +102,12 @@
 	  (when (= (ask-loop entry) 0)
 		(array/pop iis))
 		(set (entry :dt) dt_min)
-		(set (entry :next) (+ (os/time) (entry :dt))))
+		(set (entry :next) (+ (os/time) (entry :dt)))
+		(write entries fileName))
 	(print)
 	(print ":-)")))
 
-(defn quiz [entries ids]
+(defn quiz [entries ids fileName]
   (def now (ids :now))
 
   (while (not (empty? now))
@@ -111,12 +117,13 @@
 	(if (= (ask-loop entry) 0)
 	  (do
 		(set (entry :next) (+ (os/time) (entry :dt)))
-		(set (entry :dt) (* growth (entry :dt)))
+		(set (entry :dt) (math/round (* growth (entry :dt))))
 		(array/pop now))
 	  # else
 	  (do 
 		(set (entry :next) (os/time))
-		(set (entry :dt) dt_min)))))
+		(set (entry :dt) dt_min)))
+	(write entries fileName)))
 
 (defn make-pool [entries]
   (def now @[])
@@ -142,8 +149,3 @@
 	(set t (min t (entry :next))))
   t)
 
-(defn write [entries fileName]
-(spit fileName (json/encode entries "\t" "\n")))
-
-(defn read [fileName]
-  (json/decode (slurp fileName) true))

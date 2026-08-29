@@ -27,11 +27,10 @@
 	(res "morse") (picus/write (picus/make-morse) "morse.json")
 	(res "10x10") (picus/write  (picus/make-axb) "10x10.json")
 	(res "20x20") (picus/write (picus/make-axb 2 20 11 20) "20x20.json")
-	(res :default) (let [filename (res :default)
-					 entries (picus/read filename)]
+	(res :default) (let [fileName (res :default)
+					 entries (picus/read fileName)]
 	  (if (res "teach")
-		(picus/teach entries (res "teach"))
-		(picus/quiz entries (picus/make-pool entries)))
-	  (print (os/strftime "%Y-%m-%d, %H:%M" (picus/next entries) true))
-	  (picus/write entries filename))
+		(picus/teach entries (res "teach") fileName)
+		(picus/quiz entries (picus/make-pool entries) fileName))
+	  (print (os/strftime "%Y-%m-%d, %H:%M" (picus/next entries) true)))
 	(print "Picus-File needed without other arguments!")))
