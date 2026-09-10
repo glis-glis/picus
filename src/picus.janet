@@ -20,6 +20,10 @@
 (defn swap-end [ar i]
   (swap ar i (- (length ar) 1)))
 
+(defn swap-end-pop [ar i]
+  (swap-end ar i)
+  (array/pop ar))
+
 (defn axb-unit [entries a bmin bmax]
   (def key (string a "x"))
   (put entries key @[])
@@ -97,33 +101,40 @@
 	# Out of order without answer
 
 	(while (not (empty? iis))
-	  (swap-end iis (randgen/rand-index iis))
-	  (def entry (unit (array/peek iis)))
+	  (def i (randgen/rand-index iis))
+	  (def entry (unit (iis i)))
 	  (when (= (ask-loop entry) 0)
-		(array/pop iis))
+		(swap-end-pop iis i)
 		(set (entry :dt) dt_min)
 		(set (entry :next) (+ (os/time) (entry :dt)))
-		(write entries fileName))
+		(write entries fileName)))
 	(print)
 	(print ":-)")))
 
+(defn lookup [entries id]
+  (get-in entries [(id :key) (id :idx)]))
+
 (defn quiz [entries ids fileName]
   (def now (ids :now))
+  (def later (ids :later))
 
   (while (not (empty? now))
-	(swap-end now (randgen/rand-index now))
-	(def id (array/peek now))
-	(def entry (get-in entries [(id :key) (id :idx)]))
+	(def i (randgen/rand-index now))
+	(def entry (lookup entries (now i)))
 	(if (= (ask-loop entry) 0)
 	  (do
 		(set (entry :next) (+ (os/time) (entry :dt)))
 		(set (entry :dt) (math/round (* growth (entry :dt))))
-		(array/pop now))
+		(swap-end-pop now i))
 	  # else
 	  (do 
 		(set (entry :next) (os/time))
 		(set (entry :dt) dt_min)))
-	(write entries fileName)))
+	(write entries fileName)
+
+	# new values in meantime?
+	(while (and (not (empty? later)) (< ((lookup entries (array/peek later)) :next) (os/time)))
+	  (array/push now (array/pop later)))))
 
 (defn make-pool [entries]
   (def now @[])
